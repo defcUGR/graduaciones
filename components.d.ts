@@ -7,6 +7,15 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AlertDialog: typeof import('./src/components/ui/alert-dialog/AlertDialog.vue')['default']
+    AlertDialogAction: typeof import('./src/components/ui/alert-dialog/AlertDialogAction.vue')['default']
+    AlertDialogCancel: typeof import('./src/components/ui/alert-dialog/AlertDialogCancel.vue')['default']
+    AlertDialogContent: typeof import('./src/components/ui/alert-dialog/AlertDialogContent.vue')['default']
+    AlertDialogDescription: typeof import('./src/components/ui/alert-dialog/AlertDialogDescription.vue')['default']
+    AlertDialogFooter: typeof import('./src/components/ui/alert-dialog/AlertDialogFooter.vue')['default']
+    AlertDialogHeader: typeof import('./src/components/ui/alert-dialog/AlertDialogHeader.vue')['default']
+    AlertDialogTitle: typeof import('./src/components/ui/alert-dialog/AlertDialogTitle.vue')['default']
+    AlertDialogTrigger: typeof import('./src/components/ui/alert-dialog/AlertDialogTrigger.vue')['default']
     Avatar: typeof import('./src/components/ui/avatar/Avatar.vue')['default']
     AvatarFallback: typeof import('./src/components/ui/avatar/AvatarFallback.vue')['default']
     AvatarImage: typeof import('./src/components/ui/avatar/AvatarImage.vue')['default']
@@ -63,6 +72,7 @@ declare module 'vue' {
     Popover: typeof import('./src/components/ui/popover/Popover.vue')['default']
     PopoverContent: typeof import('./src/components/ui/popover/PopoverContent.vue')['default']
     PopoverTrigger: typeof import('./src/components/ui/popover/PopoverTrigger.vue')['default']
+    PortSelector: typeof import('./src/components/PortSelector.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Separator: typeof import('./src/components/ui/separator/Separator.vue')['default']

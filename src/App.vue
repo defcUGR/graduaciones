@@ -3,17 +3,18 @@ import { useColorMode } from "@vueuse/core";
 import { IconSun, IconMoon } from "@tabler/icons-vue";
 import { Toaster } from "@/components/ui/sonner";
 import { useEventStore } from "@/stores/eventStore";
-import { invoke } from "@tauri-apps/api";
 
 const mode = useColorMode();
 const event = useEventStore();
+const router = useRouter();
 
-const testQr = async () => {
-  const code = invoke("create_ticket_from_email", {
-    email: "deunaocampo@correo.ugr.es",
-  });
-  alert(code);
-};
+watch(event.$state, () => {
+  if (event.id) router.push("/event");
+});
+
+setTimeout(() => {
+  event.id = "Test";
+}, 1000);
 </script>
 
 <template>
@@ -22,9 +23,8 @@ const testQr = async () => {
     <header
       class="sticky top-0 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 md:px-6"
     >
-      <Button @click="testQr">QR</Button>
       <h1 class="text-xl font-bold">
-        Graduaciones{{ event.id ? " - " + event.data.name : "" }}
+        Graduaciones{{ event.id ? " - " + event.data : "" }}
       </h1>
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
@@ -46,6 +46,8 @@ const testQr = async () => {
       </DropdownMenu>
     </header>
 
-    <main class="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8"></main>
+    <main class="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+      <RouterView />
+    </main>
   </div>
 </template>
