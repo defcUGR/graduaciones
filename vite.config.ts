@@ -13,6 +13,7 @@ export default defineConfig(async () => ({
     vue(),
     AutoImport({
       imports: ["vue", VueRouterAutoImports],
+      dirs: ["./src/stores"],
     }),
     Components(),
   ],

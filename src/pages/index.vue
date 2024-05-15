@@ -3,7 +3,7 @@ import {
   IconCirclePlus,
   IconFileImport,
   IconArrowLeft,
-  IconZoom,
+  IconArrowRight,
 } from "@tabler/icons-vue";
 import { h } from "vue";
 import { useForm } from "vee-validate";
@@ -21,6 +21,19 @@ import {
 import { cn } from "@/lib//utils";
 import { CalendarDate, parseDate } from "@internationalized/date";
 import { vAutoAnimate } from "@formkit/auto-animate/vue";
+
+const events = [
+  {
+    id: "xpw12i396k",
+    name: "Graduación Matemáticas 2024",
+    date: new CalendarDate(2024, 5, 14),
+  },
+  {
+    id: "tezdzyx66t",
+    name: "Graduación Física 2024",
+    date: new CalendarDate(2024, 5, 14 + 7),
+  },
+];
 
 const creatingNewEvent = ref(false);
 
@@ -60,7 +73,7 @@ const onSubmit = handleSubmit((values) => {
 </script>
 
 <template>
-  <div class="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+  <div class="flex flex-1 flex-col gap-4 md:gap-8">
     <div
       v-if="creatingNewEvent"
       class="flex justify-center items-center h-full"
@@ -170,11 +183,11 @@ const onSubmit = handleSubmit((values) => {
           <CardTitle>Eventos existentes</CardTitle>
         </CardHeader>
         <CardContent class="grid gap-8">
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-4" v-for="event in events">
             <div class="grid gap-1">
-              <p class="text-sm font-medium leading-none">14/05/2023</p>
+              <p class="text-sm font-medium leading-none">{{ event.date }}</p>
               <p class="text-sm text-muted-foreground">
-                Graduación Matemáticas 2023
+                {{ event.name }}
               </p>
             </div>
             <div class="ml-auto font-medium">
@@ -185,10 +198,16 @@ const onSubmit = handleSubmit((values) => {
                       size="icon"
                       variant="outline"
                       @click="creatingNewEvent = false"
-                      ><IconZoom class="w-4 h-4" /></Button></TooltipTrigger
-                  ><TooltipContent><p>Consultar</p></TooltipContent>
-                </Tooltip></TooltipProvider
-              >
+                      as-child
+                    >
+                      <RouterLink :to="`/${event.id}`">
+                        <IconArrowRight class="w-4 h-4" />
+                      </RouterLink>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent><p>Acceder</p></TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </CardContent>

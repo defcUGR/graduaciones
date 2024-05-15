@@ -1,19 +1,48 @@
 <script setup lang="ts">
 import { useColorMode } from "@vueuse/core";
-import { IconSun, IconMoon } from "@tabler/icons-vue";
+import { IconSun, IconMoon, IconSlash } from "@tabler/icons-vue";
 import { Toaster } from "@/components/ui/sonner";
 import { useEventStore } from "@/stores/eventStore";
+import { sift } from "radash";
+import { CalendarDate } from "@internationalized/date";
+import { isCuid } from "@paralleldrive/cuid2";
 
 const mode = useColorMode();
 const event = useEventStore();
 const router = useRouter();
+const route = useRoute();
 
-watch(event.$state, () => {
-  if (event.id) router.push("/event");
+const events = [
+  {
+    id: "xpw12i396k",
+    name: "Graduación Matemáticas 2024",
+    date: new CalendarDate(2024, 5, 14),
+  },
+  {
+    id: "tezdzyx66t",
+    name: "Graduación Física 2024",
+    date: new CalendarDate(2024, 5, 14 + 7),
+  },
+];
+
+const crumbs = computed(() => sift(route.fullPath.split("/")));
+
+const crumbName = computed(() => (crumb: string) => {
+  if (crumb === "scan") return "Escanear";
+  if (crumb === "send") return "Enviar";
+  else return events.find((e) => e.id === crumb)?.name || "ERROR";
+});
+
+watch(route, (val) => {
+  if (val.fullPath === "/") event.id = null;
+  else if (isCuid(val.fullPath.replace("/", "")))
+    event.id = val.fullPath.split("/")[1];
+
+  console.info("evid", event.id, val.fullPath);
 });
 
 setTimeout(() => {
-  event.id = "Test";
+  // event.id = "Test";
 }, 1000);
 </script>
 
@@ -21,11 +50,34 @@ setTimeout(() => {
   <Toaster />
   <div class="flex min-h-screen w-full flex-col">
     <header
-      class="sticky top-0 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 md:px-6"
+      class="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6"
     >
       <h1 class="text-xl font-bold">
-        Graduaciones{{ event.id ? " - " + event.data : "" }}
+        Graduaciones<span v-if="event.id">{{ " - " + event.data }}</span>
       </h1>
+
+      <Breadcrumb class="flex-grow">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink as-child>
+              <RouterLink to="/">Home</RouterLink>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <template v-for="(crumb, idx) in crumbs">
+            <BreadcrumbSeparator>
+              <IconSlash />
+            </BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbLink as-child>
+                <RouterLink :to="'/' + crumbs.slice(0, idx + 1).join('/')">{{
+                  crumbName(crumb)
+                }}</RouterLink>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+          </template>
+        </BreadcrumbList>
+      </Breadcrumb>
+
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
           <Button variant="outline">

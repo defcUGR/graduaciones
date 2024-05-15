@@ -12,6 +12,7 @@
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
     "@internationalized/date": "^3.5.3",
+    "@paralleldrive/cuid2": "^2.2.2",
     "@tabler/icons-vue": "^3.3.0",
     "@tauri-apps/api": "^1",
     "@vee-validate/zod": "^4.12.8",
