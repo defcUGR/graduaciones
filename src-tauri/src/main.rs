@@ -11,12 +11,18 @@ mod store;
 mod ticket;
 
 #[tauri::command]
-pub fn create(email: String) -> String {
-    ticket::create_ticket_from_email(email)
+fn create(email: String) -> () {
+    ticket::create_ticket_pdf(ticket::create_ticket_data_from_email(email));
 }
 
 fn main() {
-    std::fs::create_dir_all(home::home_dir().unwrap().join(".graduaciones")).unwrap();
+    std::fs::create_dir_all(
+        home::home_dir()
+            .unwrap()
+            .join(".graduaciones")
+            .join("codes"),
+    )
+    .unwrap();
 
     tauri::Builder::default()
         .manage(session::SessionStore::new(
@@ -27,7 +33,7 @@ fn main() {
         ))
         .invoke_handler(tauri::generate_handler![
             // scanner::get_serial_ports,
-            // scanner::start_scan,
+            scanner::start_scan,
             // session::get_sessions,
             // session::get_session_data,
             // session::create_session,
