@@ -1,3 +1,4 @@
+use aes::cipher::generic_array::{typenum::U8, GenericArray};
 use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, BlockEncryptMut, KeyInit};
 use base64::{engine::general_purpose, Engine as _};
 use cuid2::CuidConstructor;
@@ -7,7 +8,7 @@ use qrcode::QrCode;
 type Encryptor = ecb::Encryptor<aes::Aes128>;
 type Decryptor = ecb::Decryptor<aes::Aes128>;
 
-const KEY: &[u8] = "asda".as_bytes();
+const KEY: &[u8] = "7xi8NYe7eW9mF2G*".as_bytes();
 
 const CUID_CREATOR: CuidConstructor = CuidConstructor::new();
 
@@ -17,19 +18,33 @@ struct TicketData {
     pub email: String,
 }
 
-#[tauri::command]
 pub fn create_ticket_from_email(email: String) -> String {
-    general_purpose::STANDARD.encode(create_ticket_code(TicketData {
+    let code = create_ticket_code(TicketData {
         session_id: CUID_CREATOR.with_length(10).create_id(),
         ticket_id: 24,
         email,
-    }))
+    });
+
+    println!("code: {:?}", code);
+
+    let enc = general_purpose::STANDARD.encode(code);
+
+    println!("enc: {:?}", enc);
+
+    enc
 }
 
 fn create_ticket_code(data: TicketData) -> Vec<u8> {
+    // let key_bytes: GenericArray<_, U8> = GenericArray::from_slice(KEY);
+
     let s = format!("{}{},{}", data.session_id, data.ticket_id, data.email);
 
-    let enc = Encryptor::new(KEY.into()).encrypt_padded_vec_mut::<Pkcs7>(&s.as_bytes());
+    println!("string: {}", s);
+
+    let encriptor = Encryptor::new_from_slice(KEY).unwrap();
+    println!("string: enc ready");
+
+    let enc = encriptor.encrypt_padded_vec_mut::<Pkcs7>(&s.as_bytes());
 
     enc
 }
