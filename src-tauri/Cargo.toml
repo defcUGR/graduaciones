@@ -22,6 +22,7 @@ image = "0.25.1"
 pdf = "0.9.0"
 ecb = { version = "0.1.2", features = ["std"] }
 aes = "0.8.4"
+base64 = "0.22.1"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

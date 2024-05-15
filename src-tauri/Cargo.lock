@@ -1375,6 +1375,7 @@ name = "graduaciones"
 version = "0.0.0"
 dependencies = [
  "aes",
+ "base64 0.22.1",
  "cuid2",
  "ecb",
  "home",
