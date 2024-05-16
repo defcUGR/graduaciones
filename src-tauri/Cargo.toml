@@ -24,6 +24,11 @@ ecb = { version = "0.1.2", features = ["std"] }
 aes = "0.8.4"
 base64 = "0.22.1"
 lopdf = { version = "0.32.0", features = ["image", "embed_image"] }
+log = "0.4.21"
+env_logger = "0.11.3"
+fern = "0.6.2"
+lettre = "0.11.7"
+serde_repr = "0.1.19"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
