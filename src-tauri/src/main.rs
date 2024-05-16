@@ -67,7 +67,7 @@ fn main() {
                 .join("sessions.json"),
         ))
         .invoke_handler(tauri::generate_handler![
-            // scanner::get_serial_ports,
+            scanner::get_serial_ports,
             scanner::start_scan,
             // session::get_sessions,
             // session::get_session_data,
