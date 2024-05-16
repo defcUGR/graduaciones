@@ -36,7 +36,7 @@ impl Into<u8> for AttendantType {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub(crate) struct TicketData {
     pub session_id: String,
     pub attendant_type: AttendantType,

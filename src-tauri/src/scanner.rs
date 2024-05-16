@@ -45,7 +45,10 @@ fn start_scanner(
                     Ok(_) => {
                         println!("Scanned: {:?}", (serial_buf.clone()));
                         handle
-                            .emit_all("id_scanned", String::from_utf8(serial_buf.clone()).unwrap())
+                            .emit_all(
+                                "id_scanned",
+                                crate::ticket::read_data_from_bytes(&serial_buf),
+                            )
                             .map_err(|e: tauri::Error| e.to_string())
                             .unwrap()
                     }
