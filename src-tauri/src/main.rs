@@ -27,7 +27,7 @@ fn jsatt() -> String {
 }
 
 fn main() {
-    dotenvy::dotenv().unwrap();
+    dotenvy::dotenv();
 
     fern::Dispatch::new()
         // Perform allocation-free log formatting
