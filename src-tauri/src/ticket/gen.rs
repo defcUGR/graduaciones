@@ -2,6 +2,8 @@ use image::{ImageBuffer, Rgb};
 use lopdf::{xobject, Document};
 use qrcode::QrCode;
 
+use crate::ticket::data::AttendantType;
+
 use super::data::{create_ticket_code, get_base64_code, TicketData};
 
 fn create_ticket_qrcode(data: TicketData) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
@@ -30,8 +32,14 @@ pub fn create_ticket_pdf(data: TicketData) -> () {
         .join("codes")
         .join(base64 + ".pdf");
 
-    let mut template =
-        Document::load("/home/hipy/dev/defc/graduaciones/src-tauri/src/template.pdf").unwrap();
+    let mut template = match data.attendant_type {
+        AttendantType::Invited => {
+            Document::load("/home/hipy/dev/defc/graduaciones/src-tauri/src/template.pdf").unwrap()
+        }
+        AttendantType::Graduated => {
+            Document::load("/home/hipy/dev/defc/graduaciones/src-tauri/src/graduado.pdf").unwrap()
+        }
+    };
     let pages = template.get_pages();
     println!("pages: {:?}", pages);
     let first_page = pages.get(&1).unwrap();
@@ -51,10 +59,4 @@ pub fn create_ticket_pdf(data: TicketData) -> () {
     template.save(&pdf_save_path).unwrap();
 
     debug!("Created ticket PDF in {:?}", &pdf_save_path);
-}
-
-pub fn create_many_tickets_pdf(data: Vec<TicketData>) {
-    for d in data {
-        create_ticket_pdf(d);
-    }
 }

@@ -11,7 +11,7 @@ const KEY: &[u8] = "7xi8NYe7eW9mF2G*".as_bytes();
 
 const CUID_CREATOR: CuidConstructor = CuidConstructor::new();
 
-#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq, Copy)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq, Copy, Clone)]
 #[repr(u8)]
 pub enum AttendantType {
     Graduated = 0,
@@ -55,7 +55,7 @@ pub fn get_base64_code(data: &TicketData) -> String {
 pub fn create_ticket_data_from_email(email: String) -> TicketData {
     TicketData {
         session_id: CUID_CREATOR.with_length(10).create_id(),
-        attendant_type: AttendantType::Invited,
+        attendant_type: AttendantType::Graduated,
         ticket_id: 24,
         email,
     }
@@ -65,7 +65,7 @@ pub(crate) fn create_ticket_code(data: &TicketData) -> Vec<u8> {
     let s = format!(
         "{}{},{},{}",
         data.session_id,
-        (Into::<u8>::into(&data.attendant_type)),
+        (Into::<u8>::into(*&data.attendant_type)),
         data.ticket_id,
         data.email
     );
