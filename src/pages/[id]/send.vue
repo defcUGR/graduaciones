@@ -1,4 +1,5 @@
 <template>
+  <Button @click="create">Holi</Button>
   <Card>
     <CardHeader>
       <CardTitle>Configuración del envío</CardTitle>
@@ -80,21 +81,22 @@
 
 <script setup lang="ts">
 import { z } from "zod";
-import { h } from "vue";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { toast } from "vue-sonner";
 import { open } from "@tauri-apps/api/dialog";
+import { invoke } from "@tauri-apps/api";
 
 import { vAutoAnimate } from "@formkit/auto-animate";
 import {
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+
+const event = useEventStore();
 
 const formats = [
   {
@@ -137,6 +139,7 @@ const { handleSubmit } = useForm({
 });
 
 const onSubmit = handleSubmit(async (values) => {
+  console.info(event.id);
   const path = await open({
     directory: false,
     filters: [{ name: "CSV", extensions: ["csv"] }],
@@ -147,5 +150,15 @@ const onSubmit = handleSubmit(async (values) => {
       "; and values: " +
       JSON.stringify(values)
   );
+  invoke("create", {
+    csvPath: path,
+    sessionId: event.id?.toString(),
+  }).catch((e) => toast.error(e));
 });
+
+const create = () => {
+  invoke("create", {
+    email: "deunaocampo@correo.ugr.es",
+  }).then((r) => console.info("create", r));
+};
 </script>

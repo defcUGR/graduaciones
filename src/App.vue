@@ -6,6 +6,7 @@ import { useEventStore } from "@/stores/eventStore";
 import { sift } from "radash";
 import { CalendarDate } from "@internationalized/date";
 import { isCuid } from "@paralleldrive/cuid2";
+import { invoke } from "@tauri-apps/api";
 
 const mode = useColorMode();
 const event = useEventStore();
@@ -35,7 +36,10 @@ const crumbName = computed(() => (crumb: string) => {
 
 watch(route, (val) => {
   if (val.fullPath === "/") event.id = null;
-  else if (isCuid(val.fullPath.replace("/", "")))
+  else if (
+    isCuid(val.fullPath.replace("/", "")) ||
+    (event.id == null && val.fullPath.split("/").length > 2)
+  )
     event.id = val.fullPath.split("/")[1];
 
   console.info("evid", event.id, val.fullPath);
@@ -43,6 +47,7 @@ watch(route, (val) => {
 
 setTimeout(() => {
   // event.id = "Test";
+  invoke("jsatt").then((r) => console.info("jsatt", r));
 }, 1000);
 </script>
 

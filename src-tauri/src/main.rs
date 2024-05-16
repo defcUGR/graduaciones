@@ -14,8 +14,8 @@ mod store;
 mod ticket;
 
 #[tauri::command]
-fn create(email: String) -> () {
-    ticket::create_ticket_pdf(ticket::create_ticket_data_from_email(email));
+fn create(session_id: String, csv_path: String) -> Result<(), String> {
+    ticket::send_from_csv(session_id, &csv_path)
 }
 
 #[tauri::command]
@@ -27,6 +27,8 @@ fn jsatt() -> String {
 }
 
 fn main() {
+    dotenvy::dotenv().unwrap();
+
     fern::Dispatch::new()
         // Perform allocation-free log formatting
         // .format(|out, message, record| {

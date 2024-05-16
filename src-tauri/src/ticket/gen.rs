@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use image::{ImageBuffer, Rgb};
 use lopdf::{xobject, Document};
 use qrcode::QrCode;
@@ -19,18 +21,15 @@ fn create_ticket_qrcode(data: TicketData) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
     image
 }
 
-pub fn create_ticket_pdf(data: TicketData) -> () {
+pub fn create_ticket_pdf(data: TicketData, pdf_save_path: &dyn AsRef<Path>) -> () {
     let base64 = get_base64_code(&data);
-    let qr_save_path = home::home_dir()
+    let qr_tmp_folder = home::home_dir()
         .unwrap()
         .join(".graduaciones")
         .join("codes")
-        .join(base64.clone() + ".png");
-    let pdf_save_path = home::home_dir()
-        .unwrap()
-        .join(".graduaciones")
-        .join("codes")
-        .join(base64 + ".pdf");
+        .join("tmp_qrs");
+    std::fs::create_dir(&qr_tmp_folder);
+    let qr_save_path = qr_tmp_folder.join(base64.replace("/", "_") + ".png");
 
     let mut template = match data.attendant_type {
         AttendantType::Invited => {
@@ -41,7 +40,7 @@ pub fn create_ticket_pdf(data: TicketData) -> () {
         }
     };
     let pages = template.get_pages();
-    println!("pages: {:?}", pages);
+    println!("pages: {:?}, {:?}", pages, &qr_save_path);
     let first_page = pages.get(&1).unwrap();
 
     let qr_code = create_ticket_qrcode(data);
@@ -58,5 +57,5 @@ pub fn create_ticket_pdf(data: TicketData) -> () {
 
     template.save(&pdf_save_path).unwrap();
 
-    debug!("Created ticket PDF in {:?}", &pdf_save_path);
+    debug!("Created ticket PDF in {:?}", &pdf_save_path.as_ref());
 }
