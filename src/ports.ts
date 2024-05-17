@@ -143,7 +143,19 @@ class Port {
         ({ payload }) => {
           if (!payload) return;
 
-          scanned.value.push(payload);
+          if (
+            !scanned.value.some(
+              (ticket) => ticket.ticket_id === payload.ticket_id
+            )
+          ) {
+            scanned.value.push(payload);
+            toast("¡Entrada registrada!");
+          } else {
+            toast(`¡Entrada ya usada!
+            Número: ${payload.ticket_id}
+            Correo: ${payload.email}
+            Tipo: ${payload.attendant_type ? "Invitado" : "Graduado"}`);
+          }
         }
       );
   }

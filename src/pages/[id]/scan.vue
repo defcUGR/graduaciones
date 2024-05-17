@@ -25,6 +25,15 @@ const input = ref("");
 const search = ref("");
 const scanned = ref<TicketData[]>([]);
 const attendants = ref({});
+const filteredAttendants = computed(() => {
+  return Object.fromEntries(
+    Object.entries(attendants.value).filter(
+      ([mail, attendant]) =>
+        // @ts-ignore
+        mail.includes(search.value) || attendant.name.includes(search.value)
+    )
+  );
+});
 
 PortService.fetchPorts();
 console.info("_set fetchPorts");
@@ -52,8 +61,18 @@ let total = 0;
     attendants.value[row.mail] = {
       name: row.name,
       invitations: row.invitations,
-      present: false,
-      invitationsUsed: 0,
+      present: computed(() => {
+        return (
+          scanned.value.filter(
+            (ticket) => ticket.email === row.mail && ticket.attendant_type === 0
+          ).length != 0
+        );
+      }),
+      invitationsUsed: computed(() => {
+        return scanned.value.filter(
+          (ticket) => ticket.email === row.mail && ticket.attendant_type === 1
+        ).length;
+      }),
     };
     total += parseInt(row.invitations) + 1;
   }
@@ -128,36 +147,36 @@ const progress = computed(() => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
+              <TableRow v-for="(attendant, mail, index) in filteredAttendants">
                 <TableCell>
-                  <div class="font-medium">Liam Johnson</div>
-                  <div class="text-muted-foreground">liam@example.com</div>
-                </TableCell>
-                <TableCell class="text-lg"> 1 / 3 </TableCell>
-                <TableCell>
-                  <IconCheck class="w-8 h-8 text-green-500" />
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>
-                  <div class="font-medium">Lucas DE</div>
-                  <div class="text-muted-foreground">lucasde@example.com</div>
-                </TableCell>
-                <TableCell class="text-lg"> 3 / 3 </TableCell>
-                <TableCell>
-                  <IconX class="w-8 h-8 text-red-500" />
-                </TableCell>
-              </TableRow>
-              <TableRow v-for="row in csv">
-                <TableCell>
-                  <div class="font-medium">{{ row.name }}</div>
-                  <div class="text-muted-foreground">{{ row.mail }}</div>
+                  <div class="font-medium">
+                    {{
+                      // @ts-ignore
+                      attendant.name
+                    }}
+                  </div>
+                  <div class="text-muted-foreground">{{ mail }}</div>
                 </TableCell>
                 <TableCell class="text-lg">
-                  0 / {{ row.invitations }}
+                  {{
+                    // @ts-ignore
+                    attendant.invitationsUsed
+                  }}
+                  /
+                  {{
+                    // @ts-ignore
+                    attendant.invitations
+                  }}
                 </TableCell>
                 <TableCell>
-                  <IconX class="w-8 h-8 text-red-500" />
+                  <IconCheck
+                    v-if="
+                      // @ts-ignore
+                      attendant.present
+                    "
+                    class="w-8 h-8 text-green-500"
+                  />
+                  <IconX v-else class="w-8 h-8 text-red-500" />
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -188,8 +207,10 @@ const progress = computed(() => {
           <CardTitle>Asistentes recientes</CardTitle>
         </CardHeader>
         <CardContent class="grid gap-8">
+          <p v-if="scanned.length === 0">No hay asistentes recientes.</p>
           <div
-            v-for="ticket in scanned.slice(-10)"
+            v-else
+            v-for="ticket in scanned.slice(-10).reverse()"
             class="flex items-center gap-4"
           >
             <div class="grid gap-1">
@@ -204,20 +225,6 @@ const progress = computed(() => {
             <div class="ml-auto font-medium">
               {{ ticket.attendant_type ? "Invitado" : "Graduado" }}
             </div>
-          </div>
-          <div class="flex items-center gap-4">
-            <div class="grid gap-1">
-              <p class="text-sm font-medium leading-none">Liam Johnson</p>
-              <p class="text-sm text-muted-foreground">liam@example.com</p>
-            </div>
-            <div class="ml-auto font-medium">Graduado</div>
-          </div>
-          <div class="flex items-center gap-4">
-            <div class="grid gap-1">
-              <p class="text-sm font-medium leading-none">Lucas DE</p>
-              <p class="text-sm text-muted-foreground">lucasde@example.com</p>
-            </div>
-            <div class="ml-auto font-medium">Invitado 1</div>
           </div>
         </CardContent>
       </Card>
