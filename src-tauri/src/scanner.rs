@@ -1,3 +1,4 @@
+use std::io::Read;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 use std::thread::{self, JoinHandle};
@@ -44,10 +45,12 @@ fn start_scanner(
                 match port.read(serial_buf.as_mut_slice()) {
                     Ok(_) => {
                         println!("Scanned: {:?}", (serial_buf.clone()));
+                        let non_zero_end = serial_buf.iter().rposition(|&x| x != 0).unwrap_or(0);
+                        
                         handle
                             .emit_all(
                                 "id_scanned",
-                                crate::ticket::read_data_from_bytes(&serial_buf),
+                                crate::ticket::read_data_from_bytes(&serial_buf[0..non_zero_end]),
                             )
                             .map_err(|e: tauri::Error| e.to_string())
                             .unwrap()

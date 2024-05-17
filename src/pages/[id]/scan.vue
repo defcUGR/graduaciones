@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import { IconUsers } from "@tabler/icons-vue";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Search } from "lucide-vue-next";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  IconUsers,
+  IconSchool,
+  IconMail,
+  IconUser,
+  IconCheck,
+  IconX,
+} from "@tabler/icons-vue";
+import { Search } from "lucide-vue-next";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,24 +17,86 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useRouter } from "vue-router";
+import { PortService } from "@/ports";
+import { TicketData } from "@/schema";
+import csv from "@/form_answers.csv";
 
-const router = useRouter();
+const input = ref("");
+const search = ref("");
+const scanned = ref<TicketData[]>([]);
+const attendants = ref({});
+
+PortService.fetchPorts();
+console.info("_set fetchPorts");
+
+const ports = PortService.usePorts;
+console.info("_set ports", ports);
+const selectedPort = ref();
+console.info("set selectedPort", selectedPort);
+
+const getPort = () => ports.value[selectedPort.value];
+
+const enterScanning = async () => {
+  console.info("go scanning");
+
+  console.info("Mounting port", ports.value[selectedPort.value]);
+  const installSuccess = await getPort().install(input);
+  if (!installSuccess) return;
+  getPort().listen(scanned, input);
+};
+
+let total = 0;
+(() => {
+  for (const row of csv as any) {
+    // @ts-ignore
+    attendants.value[row.mail] = {
+      name: row.name,
+      invitations: row.invitations,
+      present: false,
+      invitationsUsed: 0,
+    };
+    total += parseInt(row.invitations) + 1;
+  }
+})();
+
+const progress = computed(() => {
+  const present = scanned.value.length;
+  const perc = Math.round((present / total) * 100);
+  if (perc === 100 && present != total) return 99;
+  else return perc;
+});
 </script>
 
 <template>
-  <div class="flex flex-row">
+  <h1 v-if="!selectedPort" class="text-xl font-bold">
+    Selecciona un método de entrada
+  </h1>
+  <div v-if="!selectedPort" class="flex flex-row flex-wrap gap-4">
+    <Button
+      variant="outline"
+      v-for="(port, index) in ports"
+      @click="
+        () => {
+          selectedPort = index;
+          enterScanning();
+        }
+      "
+      >{{ port.info }}</Button
+    >
+  </div>
+  <div v-else class="flex flex-col-reverse md:flex-row">
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
       <Card class="xl:col-span-2">
-        <CardHeader class="flex flex-row items-center justify-between">
+        <CardHeader class="flex flex-row items-center justify-between gap-4">
           <div class="grid gap-2">
             <CardTitle>Asistentes</CardTitle>
           </div>
-          <div class="relative max-w-sm items-center">
+          <div class="relative items-center">
             <Input
+              v-model="search"
               id="search"
               type="text"
-              placeholder="Search..."
+              placeholder="Buscar..."
               class="pl-10"
             />
             <span
@@ -50,105 +110,55 @@ const router = useRouter();
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead class="hidden xl:table-column"> Type </TableHead>
-                <TableHead class="hidden xl:table-column"> Status </TableHead>
-                <TableHead class="hidden xl:table-column"> Date </TableHead>
-                <TableHead class="text-right"> Amount </TableHead>
+                <TableHead>
+                  <div class="flex flex-row items-center">
+                    <IconSchool class="w-4 h-4 mr-2" /> Graduado
+                  </div></TableHead
+                >
+                <TableHead>
+                  <div class="flex flex-row items-center">
+                    <IconMail class="w-4 h-4 mr-2" /> Invitados
+                  </div></TableHead
+                >
+                <TableHead>
+                  <div class="flex flex-row items-center">
+                    <IconUser class="w-4 h-4 mr-2" /> Presente
+                  </div>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow>
                 <TableCell>
                   <div class="font-medium">Liam Johnson</div>
-                  <div class="hidden text-sm text-muted-foreground md:inline">
-                    liam@example.com
-                  </div>
+                  <div class="text-muted-foreground">liam@example.com</div>
                 </TableCell>
-                <TableCell class="hidden xl:table-column"> Sale </TableCell>
-                <TableCell class="hidden xl:table-column">
-                  <Badge class="text-xs" variant="outline"> Approved </Badge>
+                <TableCell class="text-lg"> 1 / 3 </TableCell>
+                <TableCell>
+                  <IconCheck class="w-8 h-8 text-green-500" />
                 </TableCell>
-                <TableCell
-                  class="hidden md:table-cell lg:hidden xl:table-column"
-                >
-                  2023-06-23
-                </TableCell>
-                <TableCell class="text-right"> $250.00 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>
-                  <div class="font-medium">Olivia Smith</div>
-                  <div class="hidden text-sm text-muted-foreground md:inline">
-                    olivia@example.com
-                  </div>
+                  <div class="font-medium">Lucas DE</div>
+                  <div class="text-muted-foreground">lucasde@example.com</div>
                 </TableCell>
-                <TableCell class="hidden xl:table-column"> Refund </TableCell>
-                <TableCell class="hidden xl:table-column">
-                  <Badge class="text-xs" variant="outline"> Declined </Badge>
-                </TableCell>
-                <TableCell
-                  class="hidden md:table-cell lg:hidden xl:table-column"
-                >
-                  2023-06-24
-                </TableCell>
-                <TableCell class="text-right"> $150.00 </TableCell>
-              </TableRow>
-              <TableRow>
+                <TableCell class="text-lg"> 3 / 3 </TableCell>
                 <TableCell>
-                  <div class="font-medium">Noah Williams</div>
-                  <div class="hidden text-sm text-muted-foreground md:inline">
-                    noah@example.com
-                  </div>
+                  <IconX class="w-8 h-8 text-red-500" />
                 </TableCell>
-                <TableCell class="hidden xl:table-column">
-                  Subscription
-                </TableCell>
-                <TableCell class="hidden xl:table-column">
-                  <Badge class="text-xs" variant="outline"> Approved </Badge>
-                </TableCell>
-                <TableCell
-                  class="hidden md:table-cell lg:hidden xl:table-column"
-                >
-                  2023-06-25
-                </TableCell>
-                <TableCell class="text-right"> $350.00 </TableCell>
               </TableRow>
-              <TableRow>
+              <TableRow v-for="row in csv">
                 <TableCell>
-                  <div class="font-medium">Emma Brown</div>
-                  <div class="hidden text-sm text-muted-foreground md:inline">
-                    emma@example.com
-                  </div>
+                  <div class="font-medium">{{ row.name }}</div>
+                  <div class="text-muted-foreground">{{ row.mail }}</div>
                 </TableCell>
-                <TableCell class="hidden xl:table-column"> Sale </TableCell>
-                <TableCell class="hidden xl:table-column">
-                  <Badge class="text-xs" variant="outline"> Approved </Badge>
+                <TableCell class="text-lg">
+                  0 / {{ row.invitations }}
                 </TableCell>
-                <TableCell
-                  class="hidden md:table-cell lg:hidden xl:table-column"
-                >
-                  2023-06-26
-                </TableCell>
-                <TableCell class="text-right"> $450.00 </TableCell>
-              </TableRow>
-              <TableRow>
                 <TableCell>
-                  <div class="font-medium">Liam Johnson</div>
-                  <div class="hidden text-sm text-muted-foreground md:inline">
-                    liam@example.com
-                  </div>
+                  <IconX class="w-8 h-8 text-red-500" />
                 </TableCell>
-                <TableCell class="hidden xl:table-column"> Sale </TableCell>
-                <TableCell class="hidden xl:table-column">
-                  <Badge class="text-xs" variant="outline"> Approved </Badge>
-                </TableCell>
-                <TableCell
-                  class="hidden md:table-cell lg:hidden xl:table-column"
-                >
-                  2023-06-27
-                </TableCell>
-                <TableCell class="text-right"> $550.00 </TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -164,75 +174,50 @@ const router = useRouter();
           <IconUsers class="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">10 / 143 personas</div>
-          <p class="text-xs text-muted-foreground">
-            13 % de entradas registradas
-          </p>
+          <div class="text-2xl font-bold mb-4">
+            {{ scanned.length }} / {{ total }} personas
+          </div>
+          <div class="flex flex-row items-center">
+            <Progress v-model="progress" class="w-3/5" />
+            <p class="ml-4 mr-1">{{ progress }} %</p>
+          </div>
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Recent Sales</CardTitle>
+          <CardTitle>Asistentes recientes</CardTitle>
         </CardHeader>
         <CardContent class="grid gap-8">
-          <div class="flex items-center gap-4">
-            <Avatar class="hidden h-9 w-9 sm:flex">
-              <AvatarImage src="/avatars/01.png" alt="Avatar" />
-              <AvatarFallback>OM</AvatarFallback>
-            </Avatar>
+          <div
+            v-for="ticket in scanned.slice(-10)"
+            class="flex items-center gap-4"
+          >
             <div class="grid gap-1">
-              <p class="text-sm font-medium leading-none">Olivia Martin</p>
-              <p class="text-sm text-muted-foreground">
-                olivia.martin@email.com
+              <p class="text-sm font-medium leading-none">
+                {{
+                  // @ts-ignore
+                  attendants[ticket.email].name
+                }}
               </p>
+              <p class="text-sm text-muted-foreground">{{ ticket.email }}</p>
             </div>
-            <div class="ml-auto font-medium">+$1,999.00</div>
+            <div class="ml-auto font-medium">
+              {{ ticket.attendant_type ? "Invitado" : "Graduado" }}
+            </div>
           </div>
           <div class="flex items-center gap-4">
-            <Avatar class="hidden h-9 w-9 sm:flex">
-              <AvatarImage src="/avatars/02.png" alt="Avatar" />
-              <AvatarFallback>JL</AvatarFallback>
-            </Avatar>
             <div class="grid gap-1">
-              <p class="text-sm font-medium leading-none">Jackson Lee</p>
-              <p class="text-sm text-muted-foreground">jackson.lee@email.com</p>
+              <p class="text-sm font-medium leading-none">Liam Johnson</p>
+              <p class="text-sm text-muted-foreground">liam@example.com</p>
             </div>
-            <div class="ml-auto font-medium">+$39.00</div>
+            <div class="ml-auto font-medium">Graduado</div>
           </div>
           <div class="flex items-center gap-4">
-            <Avatar class="hidden h-9 w-9 sm:flex">
-              <AvatarImage src="/avatars/03.png" alt="Avatar" />
-              <AvatarFallback>IN</AvatarFallback>
-            </Avatar>
             <div class="grid gap-1">
-              <p class="text-sm font-medium leading-none">Isabella Nguyen</p>
-              <p class="text-sm text-muted-foreground">
-                isabella.nguyen@email.com
-              </p>
+              <p class="text-sm font-medium leading-none">Lucas DE</p>
+              <p class="text-sm text-muted-foreground">lucasde@example.com</p>
             </div>
-            <div class="ml-auto font-medium">+$299.00</div>
-          </div>
-          <div class="flex items-center gap-4">
-            <Avatar class="hidden h-9 w-9 sm:flex">
-              <AvatarImage src="/avatars/04.png" alt="Avatar" />
-              <AvatarFallback>WK</AvatarFallback>
-            </Avatar>
-            <div class="grid gap-1">
-              <p class="text-sm font-medium leading-none">William Kim</p>
-              <p class="text-sm text-muted-foreground">will@email.com</p>
-            </div>
-            <div class="ml-auto font-medium">+$99.00</div>
-          </div>
-          <div class="flex items-center gap-4">
-            <Avatar class="hidden h-9 w-9 sm:flex">
-              <AvatarImage src="/avatars/05.png" alt="Avatar" />
-              <AvatarFallback>SD</AvatarFallback>
-            </Avatar>
-            <div class="grid gap-1">
-              <p class="text-sm font-medium leading-none">Sofia Davis</p>
-              <p class="text-sm text-muted-foreground">sofia.davis@email.com</p>
-            </div>
-            <div class="ml-auto font-medium">+$39.00</div>
+            <div class="ml-auto font-medium">Invitado 1</div>
           </div>
         </CardContent>
       </Card>

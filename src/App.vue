@@ -57,9 +57,7 @@ setTimeout(() => {
     <header
       class="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6"
     >
-      <h1 class="text-xl font-bold">
-        Graduaciones<span v-if="event.id">{{ " - " + event.data }}</span>
-      </h1>
+      <h1 class="text-xl font-bold">Graduaciones</h1>
 
       <Breadcrumb class="flex-grow">
         <BreadcrumbList>

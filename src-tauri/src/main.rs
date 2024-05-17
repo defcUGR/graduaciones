@@ -73,7 +73,7 @@ fn main() {
             // session::get_session_data,
             // session::create_session,
             create,
-            jsatt
+            jsatt,
         ])
         .on_window_event(move |ev| match *ev.event() {
             WindowEvent::CloseRequested { .. } => scanner::EMIT_IDS.store(false, Ordering::SeqCst),

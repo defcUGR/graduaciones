@@ -83,12 +83,10 @@ pub fn read_data_from_bytes(bytes: &[u8]) -> TicketData {
     let s = String::from_utf8(dec).unwrap();
 
     let session_id = &s[0..10];
-    let parts = &s[10..].split_once(',').unwrap();
-    let ticket_id = parts.0.parse::<u32>().unwrap();
-
-    let parts_2 = parts.1.split_once(',').unwrap();
-    let attendant_type: AttendantType = parts_2.0.parse::<u8>().unwrap().try_into().unwrap();
-    let email = parts_2.1.to_string();
+    let parts: Vec<&str> = s[10..].split(',').collect();
+    let attendant_type: AttendantType = parts[0].parse::<u8>().unwrap().try_into().unwrap();
+    let ticket_id = parts[1].parse::<u32>().unwrap();
+    let email = parts[2].to_string();
 
     TicketData {
         session_id: session_id.to_string(),

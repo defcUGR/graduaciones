@@ -5,6 +5,7 @@ import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import VueRouter from "unplugin-vue-router/vite";
 import { VueRouterAutoImports } from "unplugin-vue-router";
+import dsv from "@rollup/plugin-dsv";
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
@@ -16,6 +17,7 @@ export default defineConfig(async () => ({
       dirs: ["./src/stores"],
     }),
     Components(),
+    dsv(),
   ],
   resolve: {
     alias: {

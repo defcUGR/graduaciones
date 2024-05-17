@@ -8,6 +8,8 @@ import {
 import { EffectScope, WatchStopHandle } from "vue";
 import { onKeyStroke } from "@vueuse/core";
 import { tryit } from "radash";
+import { toast } from "vue-sonner";
+import type { TicketData } from "./schema";
 
 interface PortInfo {
   port_name: string;
@@ -53,6 +55,103 @@ class Port {
         ? {}
         : Object.values(this._info.port_type)[0]),
     };
+  }
+
+  public async install(input: Ref<string>) {
+    if (this._info === "keyboard") {
+      this._keyboard_scope = effectScope();
+      this._keyboard_scope?.run(() => {
+        onKeyStroke(
+          ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+          (e) => {
+            e.preventDefault();
+            if (PortService.scanning) input.value += e.key;
+          },
+          { dedupe: true }
+        );
+        onKeyStroke(["Delete", "Backspace"], (e) => {
+          e.preventDefault();
+          if (input.value.length > 0 && PortService.scanning)
+            input.value = input.value.slice(0, input.value.length - 1);
+        });
+        onKeyStroke(["V", "v"], (e) => {
+          e.preventDefault();
+          if (PortService.scanning && e.ctrlKey)
+            invoke("paste").then((res) => {
+              if (parseInt(res as string) && /\d{7}/.test(res as string)) {
+                input.value = res as string;
+              } else {
+                toast("El contenido pegado no es un número de TUI válido.");
+              }
+            });
+        });
+      });
+    } else {
+      const [err, _] = await tryit(invoke)("start_scan", {
+        portName: this._info.port_name,
+      });
+      if (err) {
+        toast(err);
+        return false;
+      }
+    }
+    PortService.scanning = true;
+    return true;
+  }
+
+  public async uninstall() {
+    if (this._info === "keyboard" && this._keyboard_scope)
+      this._keyboard_scope?.stop();
+  }
+
+  public stop() {
+    new Promise<undefined | boolean>((resolve) => {
+      if (!PortService.scanning) resolve(false);
+      PortService.scanning = false;
+      if (this._info === "keyboard") resolve(undefined);
+      emit("close_scan");
+      once("scan_closed", ({ payload }) => resolve(payload as true));
+    });
+  }
+
+  public async restart(input: Ref<string>) {
+    if (this._info === "keyboard") await this.install(input);
+    else {
+      const [err, _] = await tryit(invoke)("start_scan", {
+        portName: this._info.port_name,
+      });
+      if (err) toast(err);
+      else PortService.scanning = true;
+    }
+  }
+
+  public async listen(scanned: Ref<TicketData[]>, input: Ref<string>) {
+    if (this._info === "keyboard")
+      this.watcher_unlisten = watch(input, () => {
+        if (input.value.length !== 7) {
+          return;
+        }
+
+        const readInput = input.value;
+        input.value = "";
+
+        console.log("Typed: ", readInput);
+      });
+    else
+      this.watcher_unlisten = await tauriListen<TicketData>(
+        "id_scanned",
+        ({ payload }) => {
+          if (!payload) return;
+
+          scanned.value.push(payload);
+        }
+      );
+  }
+
+  public unlisten() {
+    if (this.watcher_unlisten) {
+      this.watcher_unlisten();
+    }
   }
 }
 
