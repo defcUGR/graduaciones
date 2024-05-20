@@ -143,7 +143,9 @@ const onSubmit = handleSubmit(async (values) => {
   const path = await open({
     directory: false,
     filters: [{ name: "CSV", extensions: ["csv"] }],
+    multiple: false,
   });
+  if (path === null) return;
   toast(
     "You submitted the following path: " +
       path +
@@ -153,7 +155,9 @@ const onSubmit = handleSubmit(async (values) => {
   invoke("create", {
     csvPath: path,
     sessionId: event.id?.toString(),
-  }).catch((e) => toast.error(e));
+  })
+    .catch((e) => toast.error(e))
+    .then(() => toast.success("Session created"));
 });
 
 const create = () => {

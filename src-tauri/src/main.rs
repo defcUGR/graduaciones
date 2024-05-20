@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::sync::atomic::Ordering;
+use std::{process::exit, sync::atomic::Ordering};
 
 use tauri::WindowEvent;
 
